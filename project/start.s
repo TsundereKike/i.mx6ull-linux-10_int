@@ -33,6 +33,7 @@ Reset_Hanlder:
      bic r0, r0, #(1 << 0)       /*关闭MMU */
      MCR p15, 0, r0, c1, c0, 0/*将r0寄存器的数据写入到SCTLR寄存器 */
 
+#if 0
     /*设置中断向量偏移 */
     ldr r0, =0x87800000
     dsb
@@ -40,6 +41,7 @@ Reset_Hanlder:
     MCR p15, 0, r0, c12, c0, 0/*设置VBAR寄存器=0x87800000 */
     dsb
     isb
+#endif
 
     /*清除BSS段 */
     ldr r0, _bss_start
@@ -113,30 +115,30 @@ IRQ_Handler:
     push {r0}                       /*保存spsr寄存器 */
 
     mrc p15, 4, r1, c15, c0, 0      /*将cp15的c0寄存器内的值读取到r1寄存器中，
-                                      目的在于获取到保存有GIC控制器寄存器组首
-                                      地址的CBAR寄存器的值 
-                                    */
+                                     *目的在于获取到保存有GIC控制器寄存器组首
+                                     *地址的CBAR寄存器的值 
+                                     */
     add r1, r1, #0x2000             /*GIC控制器基地址偏移0x2000,即GIC的CPU接口端
-                                      基地址
-                                    */
+                                     *基地址
+                                     */
     ldr r0, [r1, #0xc]              /*GIC控制器的CPU接口端基地址再偏移0x0c就是GICC_IAR
-                                      寄存器的地址。其中GICC_IAR寄存器的bit9～0保存了中断的ID号 */
+                                     *寄存器的地址。其中GICC_IAR寄存器的bit9～0保存了中断的ID号 */
     push {r0, r1}                   /*保存r0,r1 */
     cps #0x13                       /*进入SVC模式，允许其他中断再次进去 */
 
     push {lr}                       /*保存SVC模式的栈首地址lr寄存器 */
     ldr r2, =system_irqhandler      /*加载C语言中断处理函数system_irqhandler到r2寄存器中 */
     blx r2                          /*跳转到r2寄存器所代表的C语言中断处理函数system_irqhandler
-                                      中运行。
-                                      注：函数system_irqhandler带有一个参数，保存在r0寄存器中
-                                    */
+                                     *中运行。
+                                     *注：函数system_irqhandler带有一个参数，保存在r0寄存器中
+                                     */
     pop {lr}                        /*执行完C语言中断处理函数system_irqhandler后，lr出栈 */
     cps #0x12                       /*进入IRQ模式 */
     pop {r0, r1}
     str r0, [r1, #0x10]             /*将r0寄存器(GICC_IAR寄存器)里的值写入到r1所代表的GIC的CPU接口端
-                                      基地址再偏移0x10地址去。
-                                      即：中断执行完成，必须将GICC_IAR寄存器里的值写入到EOIR寄存器中去
-                                    */
+                                     *基地址再偏移0x10地址去。
+                                     *即：中断执行完成，必须将GICC_IAR寄存器里的值写入到EOIR寄存器中去
+                                     */
     pop {r0}
     msr spsr_cxsf, r0               /*恢复spsr */
 
