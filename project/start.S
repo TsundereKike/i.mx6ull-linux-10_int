@@ -1,14 +1,5 @@
 .global _start
 
-.global _bss_start
-_bss_start:
-    .word __bss_start
-
-.global _bss_end
-_bss_end:
-    .word __bss_end
-
-
 _start:
     ldr pc, =Reset_Hanlder      /*复位中断服务函数 */
     ldr pc, =Undefined_Handler  /*未定义指令中断服务函数 */
@@ -25,24 +16,32 @@ Reset_Hanlder:
     /*关闭I,Dcache 
      *修改SCTLR寄存器，采用读-改-写的方式
      */
-     MRC p15, 0, r0, c1, c0, 0 /*读取SCTLR寄存器的数据到r0寄存器里面 */
+     mrc p15, 0, r0, c1, c0, 0 /*读取SCTLR寄存器的数据到r0寄存器里面 */
      bic r0, r0, #(1 << 12)    /*关闭Icache  */
      bic r0, r0, #(1 << 11)      /*关闭分支预测 */
      bic r0, r0, #(1 << 2)       /*关闭Dcache */
      bic r0, r0, #(1 << 1)       /*关闭对齐 */
      bic r0, r0, #(1 << 0)       /*关闭MMU */
-     MCR p15, 0, r0, c1, c0, 0/*将r0寄存器的数据写入到SCTLR寄存器 */
-
+     mcr p15, 0, r0, c1, c0, 0/*将r0寄存器的数据写入到SCTLR寄存器 */
+ 
 #if 0
     /*设置中断向量偏移 */
     ldr r0, =0x87800000
     dsb
     isb
-    MCR p15, 0, r0, c12, c0, 0/*设置VBAR寄存器=0x87800000 */
+    mcr p15, 0, r0, c12, c0, 0/*设置VBAR寄存器=0x87800000 */
     dsb
     isb
 #endif
 
+.global _bss_start
+_bss_start:
+    .word __bss_start
+
+.global _bss_end
+_bss_end:
+    .word __bss_end
+       
     /*清除BSS段 */
     ldr r0, _bss_start
     ldr r1, _bss_end
@@ -79,6 +78,7 @@ bss_loop:
     ldr sp, =0x80200000     /*设置SVC模式下的栈首地址为0x80200000,大小为2MB */
 
     cpsie i         /*打开全局中断 */
+   
     b main          /*跳转到main函数 */
 
 /*未定义指令中断服务函数 */
@@ -144,7 +144,7 @@ IRQ_Handler:
 
     pop {r0-r3, r12}                /*r0-r3,r12出栈 */
     pop {lr}                        /*lr出栈 */
-    sub pc, lr, #4                  /*将栈首地址lr-4赋给pc */
+    subs pc, lr, #4                  /*将栈首地址lr-4赋给pc */
 
 /*FIQ中断服务函数 */
 FIQ_Handler:

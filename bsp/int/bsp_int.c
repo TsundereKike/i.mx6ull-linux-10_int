@@ -27,13 +27,13 @@ void int_init(void)
     GIC_Init();
     system_irqtable_init();
     /*中断向量偏移设置*/
-    __set_VBAR(0x87800000);
+    __set_VBAR((uint32_t)0x87800000);
 
 }
 /*具体的中断处理函数，当中断触发时，进入IRQ_Handler，IRQ_Handler再调用此函数*/
 void system_irqhandler(unsigned int gicciar)
 {
-    uint32_t intNum = gicciar & 0x3ff;
+    uint32_t intNum = gicciar & 0x3ffUL;
     /*检查中断ID是否正常*/
     if(intNum >= NUMBER_OF_INT_VECTORS)
     {

@@ -6,7 +6,8 @@
 	],
 	"settings": {
 		"files.associations": {
-			"bsp_int.h": "c"
+			"bsp_int.h": "c",
+			"bsp_gpio.h": "c"
 		}
 	}
 }

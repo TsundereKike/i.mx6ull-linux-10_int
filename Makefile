@@ -13,7 +13,8 @@ INCUDIRS	:= imx6u \
 			   bsp/beep \
 			   bsp/key \
 			   bsp/gpio \
-			   bsp/int
+			   bsp/int \
+			   bsp/exti
 
 SRCDIRS		:= project \
 			   bsp/clk \
@@ -22,17 +23,18 @@ SRCDIRS		:= project \
 			   bsp/beep \
 			   bsp/key \
 			   bsp/gpio \
-			   bsp/int
+			   bsp/int \
+			   bsp/exti
 
 INCLUDE		:= $(patsubst %, -I %, $(INCUDIRS))
 
-SFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.s))
+SFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.S))
 CFILES		:= $(foreach dir, $(SRCDIRS), $(wildcard $(dir)/*.c))
 
 SFILENDIR	:= $(notdir $(SFILES))
 CFILENDIR	:= $(notdir $(CFILES))
 
-SOBJS		:= $(patsubst %, obj/%, $(SFILENDIR:.s=.o))
+SOBJS		:= $(patsubst %, obj/%, $(SFILENDIR:.S=.o))
 COBJS		:= $(patsubst %, obj/%, $(CFILENDIR:.c=.o))
 
 OBJS		:= $(SOBJS)$(COBJS)
@@ -46,7 +48,7 @@ $(TARGET).bin : $(OBJS)
 	$(OBJCOPY) -O binary -S $(TARGET).elf $@
 	$(OBJDUMP) -D -m arm $(TARGET).elf > $(TARGET).dis
 
-$(SOBJS) : obj/%.o : %.s
+$(SOBJS) : obj/%.o : %.S
 	$(CC) -Wall -nostdlib -c -O2 $(INCLUDE) -o $@ $<
 
 $(COBJS) : obj/%.o : %.c
